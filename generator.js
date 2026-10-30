@@ -9,54 +9,52 @@ if (!API_KEY) {
 }
 
 const prompt = `Actúa como un motor analítico deportivo inteligente autónomo tipo Scores24.
-Busca y selecciona partidos destacados reales que se jueguen HOY o en las próximas 24 horas en ligas principales (LaLiga, Premier, Champions, Serie A, Libertadores, etc.).
-Genera una respuesta JSON estricta dividida en dos categorías: "free" (3 partidos) y "vip" (3 partidos más exclusivos).
+Genera un objeto JSON estricto con pronósticos deportivos reales para hoy dividido exactamente en dos categorías: "free" (3 partidos) y "vip" (3 partidos).
 
-Usa estrictamente esta estructura JSON pura:
+Usa esta estructura JSON exacta:
 {
   "free": [
     {
-      "partido": "Equipo A vs Equipo B",
+      "partido": "Real Madrid vs Barcelona",
       "liga": "LaLiga España",
       "fecha": "Hoy 21:00",
-      "analisis": "Resumen completo del estado de forma y bajas...",
+      "analisis": "Análisis detallado del estado de forma de ambos equipos.",
       "corners": "Más de 9.5",
       "tarjetas": "Más de 4.5",
-      "remates": "Jugador X > 1.5",
-      "paradas": "Portero Y > 2.5",
-      "pick": "Gana Equipo A",
-      "cuota": "1.80",
+      "remates": "Más de 5.5",
+      "paradas": "Más de 3.5",
+      "pick": "Gana Real Madrid",
+      "cuota": "1.85",
       "resultado": "2-1",
-      "stake": "3/5"
+      "stake": "4/5"
     }
   ],
   "vip": [
     {
-      "partido": "Equipo C vs Equipo D",
+      "partido": "Manchester City vs Arsenal",
       "liga": "Premier League",
-      "fecha": "Hoy 20:00",
-      "analisis": "Análisis profundo VIP táctico y dinámicas de apuestas...",
+      "fecha": "Hoy 18:30",
+      "analisis": "Análisis táctico profundo para miembros VIP.",
       "corners": "Más de 10.5",
       "tarjetas": "Más de 5.5",
-      "remates": "Jugador Z > 2.5",
-      "paradas": "Portero K > 3.5",
-      "pick": "Ambos anotan & +2.5 goles",
-      "cuota": "2.10",
-      "resultado": "3-2",
-      "stake": "4/5"
+      "remates": "Más de 6.5",
+      "paradas": "Más de 2.5",
+      "pick": "Empate y ambos marcan",
+      "cuota": "3.20",
+      "resultado": "2-2",
+      "stake": "3/5"
     }
   ]
 }
-Responde ÚNICAMENTE con el objeto JSON sin bloques de código markdown ni texto adicional.`;
+Responde ÚNICAMENTE con el texto JSON puro, sin bloques de código ni texto adicional.`;
 
 const data = JSON.stringify({
-  contents: [{ parts: [{ text: prompt }] }],
-  tools: [{ googleSearch: {} }]
+  contents: [{ parts: [{ text: prompt }] }]
 });
 
 const options = {
   hostname: 'generativelanguage.googleapis.com',
-  path: `/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`,
+  path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -66,11 +64,7 @@ const options = {
 
 const req = https.request(options, (res) => {
   let responseBody = '';
-
-  res.on('data', (chunk) => {
-    responseBody += chunk;
-  });
-
+  res.on('data', (chunk) => { responseBody += chunk; });
   res.on('end', () => {
     try {
       const jsonResponse = JSON.parse(responseBody);
@@ -86,20 +80,20 @@ const req = https.request(options, (res) => {
 
         JSON.parse(rawText);
         fs.writeFileSync('data.json', rawText);
-        console.log("¡Pronósticos automáticos generados con éxito!");
+        console.log("¡Generado con éxito!");
       } else {
-        console.error("Estructura de respuesta inesperada:", responseBody);
+        console.error("Respuesta:", responseBody);
         process.exit(1);
       }
     } catch (e) {
-      console.error("Error al procesar el JSON:", e, responseBody);
+      console.error("Error:", e, responseBody);
       process.exit(1);
     }
   });
 });
 
 req.on('error', (error) => {
-  console.error("Error en la petición:", error);
+  console.error("Error HTTPS:", error);
   process.exit(1);
 });
 
