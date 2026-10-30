@@ -3,156 +3,115 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Generador de Picks</title>
+  <title>Keeperstats VIP - Pronósticos Deportivos Automáticos</title>
   <style>
     :root {
-      --bg-color: #0b0f19;
-      --card-bg: #131c2e;
-      --text-color: #f1f5f9;
-      --accent-color: #22c55e;
-      --border-color: #1e293b;
+      --bg: #0b0f19;
+      --card: #131c2e;
+      --text: #f1f5f9;
+      --green: #22c55e;
+      --gold: #eab308;
+      --border: #1e293b;
     }
-    body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; }
-    .card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-    input, select, button { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid var(--border-color); background: #0b0f19; color: #fff; box-sizing: border-box; }
-    button { background-color: var(--accent-color); font-weight: bold; cursor: pointer; border: none; }
-    button:hover { background-color: #16a34a; }
-    .hidden { display: none; }
-    .loading { text-align: center; color: #38bdf8; display: none; font-size: 1.1em; }
-    .success { color: #22c55e; font-weight: bold; text-align: center; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+    header { background: var(--card); border-bottom: 1px solid var(--border); padding: 15px; text-align: center; }
+    h1 { color: var(--green); margin: 0; font-size: 1.6em; }
+    .subtitle { color: #94a3b8; font-size: 0.85em; margin-top: 4px; }
+    .container { max-width: 900px; margin: 15px auto; padding: 0 12px; }
+    
+    .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+    .tab { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; background: var(--card); color: #94a3b8; font-size: 1em; }
+    .tab.active-free { background: var(--green); color: #fff; }
+    .tab.active-vip { background: var(--gold); color: #000; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-left: 5px solid var(--green); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+    .card.vip { border-left-color: var(--gold); }
+    .header-match { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .league { background: #1e293b; font-size: 0.75em; padding: 3px 8px; border-radius: 4px; color: #cbd5e1; }
+    .teams { font-size: 1.2em; font-weight: bold; color: #38bdf8; }
+    .analysis { font-size: 0.9em; line-height: 1.4; color: #cbd5e1; margin: 10px 0; background: #0b0f19; padding: 10px; border-radius: 6px; }
+    .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; font-size: 0.85em; margin: 10px 0; }
+    .stat-item { background: #1e293b; padding: 6px 10px; border-radius: 4px; }
+    .stat-item label { display: block; color: #94a3b8; font-size: 0.75em; }
+    .pick-footer { background: #1e293b; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
   </style>
 </head>
 <body>
 
+<header>
+  <h1>Scores24 AI VIP ⚽</h1>
+  <div class="subtitle">Pronósticos Diarios Generados Automáticamente por Inteligencia Artificial</div>
+</header>
+
 <div class="container">
-  <h1>🔐 Panel de Control - Administrador</h1>
-
-  <div id="loginBox" class="card">
-    <h3>Contraseña de Admin</h3>
-    <input type="password" id="adminPass" placeholder="Contraseña">
-    <button onclick="verificarLogin()">Entrar</button>
+  <div class="tabs">
+    <button id="btnFree" class="tab active-free" onclick="switchTab('free')">🎁 Picks Gratuitos</button>
+    <button id="btnVip" class="tab" onclick="switchTab('vip')">👑 Picks Privados (VIP)</button>
   </div>
 
-  <div id="adminPanel" class="card hidden">
-    <h3>🤖 Generador de Pronósticos</h3>
-    
-    <label>Tipo de Publicación:</label>
-    <select id="tipoPick">
-      <option value="free">🎁 Pick Gratuito (Free)</option>
-      <option value="vip">👑 Pick Privado (VIP)</option>
-    </select>
-
-    <label>Competición:</label>
-    <select id="ligaSelect">
-      <option value="LaLiga España">LaLiga España</option>
-      <option value="Premier League">Premier League</option>
-      <option value="Champions League">Champions League</option>
-      <option value="Copa Libertadores">Copa Libertadores</option>
-      <option value="Serie A Italia">Serie A Italia</option>
-      <option value="Bundesliga Alemania">Bundesliga Alemania</option>
-    </select>
-
-    <label>Partido (Ej: Real Madrid vs Barcelona):</label>
-    <input type="text" id="partidoInput" placeholder="Introduce los equipos del partido">
-
-    <button onclick="generarPickManual()">🚀 Generar Análisis y Publicar</button>
-    <div id="loading" class="loading">⏳ Analizando estado de forma, córners, tarjetas y estadísticas...</div>
-    <div id="statusMsg"></div>
-
-    <br>
-    <a href="index.html" style="color: #38bdf8; text-decoration: none;">← Volver a la web pública</a>
-  </div>
+  <div id="content">Cargando pronósticos automáticos del día...</div>
 </div>
 
 <script>
-const CLAVE_SECRETA = "admin123";
-const MI_API_KEY = "AQ.Ab8RN6IBHkbKInFaIbDPMw8Y6f7AbfZlWM_X7xMXurmGYlFRIQ";
+let currentTab = 'free';
+let allData = { free: [], vip: [] };
 
-function verificarLogin() {
-  if (document.getElementById('adminPass').value === CLAVE_SECRETA) {
-    document.getElementById('loginBox').classList.add('hidden');
-    document.getElementById('adminPanel').classList.remove('hidden');
-  } else {
-    alert("Contraseña incorrecta");
+window.onload = async function() {
+  try {
+    // Lee el archivo generado diariamente por el bot autónomo
+    const res = await fetch('data.json?v=' + Date.now());
+    allData = await res.json();
+    render();
+  } catch (e) {
+    document.getElementById('content').innerHTML = `
+      <div style="text-align:center; padding: 40px; color: #64748b;">
+        <h3>⏳ Generando primeros datos automáticos...</h3>
+        <p>El bot de Inteligencia Artificial está procesando la jornada de hoy. En unos minutos estarán disponibles.</p>
+      </div>`;
   }
 }
 
-async function generarPickManual() {
-  const partido = document.getElementById('partidoInput').value.trim();
-  const liga = document.getElementById('ligaSelect').value;
-  const tipo = document.getElementById('tipoPick').value;
-  const loading = document.getElementById('loading');
-  const msg = document.getElementById('statusMsg');
+function switchTab(type) {
+  currentTab = type;
+  document.getElementById('btnFree').className = type === 'free' ? 'tab active-free' : 'tab';
+  document.getElementById('btnVip').className = type === 'vip' ? 'tab active-vip' : 'tab';
+  render();
+}
 
-  if (!partido) {
-    alert("Por favor escribe el partido.");
+function render() {
+  const container = document.getElementById('content');
+  const picks = currentTab === 'free' ? allData.free : allData.vip;
+
+  if (!picks || picks.length === 0) {
+    container.innerHTML = `<p style="text-align:center; color:#64748b;">No hay pronósticos para esta sección hoy.</p>`;
     return;
   }
 
-  loading.style.display = 'block';
-  msg.innerHTML = '';
-
-  const prompt = `Actúa como tipster profesional. Haz un análisis estadístico avanzado para el partido "${partido}" de la competición "${liga}".
-Devuelve la respuesta estructurada exactamente con este formato de texto plano (sin bloques json ni markdown):
-ANÁLISIS: [Resumen de forma, bajas y contexto táctico]
-PICK: [Apuesta recomendada principal]
-CUOTA: [Cuota estimada ej: 1.85]
-EXTRA: [Córners / Tarjetas / Remates estimados]
-RESULTADO: [Resultado exacto o hándicap]
-STAKE: [Stake ej: 3/5]`;
-
-  try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${MI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
-
-    const data = await response.json();
-    loading.style.display = 'none';
-
-    if (data.candidates && data.candidates[0].content.parts[0].text) {
-      let textoIA = data.candidates[0].content.parts[0].text;
-
-      // Extraer datos limpiamente por líneas
-      let nuevoPick = {
-        partido: partido,
-        liga: liga,
-        fecha: "Próximo encuentro",
-        analisis: extraerCampo(textoIA, "ANÁLISIS:"),
-        pick: extraerCampo(textoIA, "PICK:"),
-        cuota: extraerCampo(textoIA, "CUOTA:"),
-        extra: extraerCampo(textoIA, "EXTRA:"),
-        resultadoExacto: extraerCampo(textoIA, "RESULTADO:"),
-        stake: extraerCampo(textoIA, "STAKE:")
-      };
-
-      const storageKey = tipo === 'free' ? 'keeperstats_free' : 'keeperstats_vip';
-      let actual = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      actual.unshift(nuevoPick);
-      localStorage.setItem(storageKey, JSON.stringify(actual));
-
-      msg.innerHTML = `<p class="success">¡Pronóstico ${tipo.toUpperCase()} publicado con éxito!</p>`;
-      document.getElementById('partidoInput').value = '';
-    } else {
-      msg.innerHTML = `<p style="color: #ef4444;">Error al generar el pronóstico.</p>`;
-    }
-  } catch (error) {
-    loading.style.display = 'none';
-    msg.innerHTML = `<p style="color: #ef4444;">Error de red: ${error.message}</p>`;
-  }
-}
-
-function extraerCampo(texto, clave) {
-  let pos = texto.indexOf(clave);
-  if (pos === -1) return "Disponible en análisis";
-  let inicio = pos + clave.length;
-  let fin = texto.indexOf('\n', inicio);
-  if (fin === -1) fin = texto.length;
-  return texto.substring(inicio, fin).trim();
+  container.innerHTML = '';
+  picks.forEach(p => {
+    const div = document.createElement('div');
+    div.className = currentTab === 'vip' ? 'card vip' : 'card';
+    div.innerHTML = `
+      <div class="header-match">
+        <span class="teams">⚽ ${p.partido}</span>
+        <span class="league">${p.liga}</span>
+      </div>
+      <div style="font-size:0.8em; color:#94a3b8;">📅 ${p.fecha}</div>
+      <div class="analysis"><strong>🧠 Análisis IA:</strong> ${p.analisis}</div>
+      <div class="grid-stats">
+        <div class="stat-item"><label>CÓRNERS</label>${p.corners}</div>
+        <div class="stat-item"><label>TARJETAS</label>${p.tarjetas}</div>
+        <div class="stat-item"><label>REMATES</label>${p.remates}</div>
+        <div class="stat-item"><label>PARADAS</label>${p.paradas}</div>
+      </div>
+      <div class="pick-footer">
+        <div><span style="font-size:0.75em; color:#94a3b8; display:block;">PRONÓSTICO</span><strong style="color:#22c55e;">${p.pick}</strong> (@${p.cuota})</div>
+        <div><span style="font-size:0.75em; color:#94a3b8; display:block;">EXACTO / HANDICAP</span><span>${p.resultado}</span></div>
+        <div><span style="font-size:0.75em; color:#94a3b8; display:block;">STAKE</span><span>${p.stake}</span></div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
 }
 </script>
 
