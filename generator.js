@@ -56,11 +56,11 @@ const data = JSON.stringify({
 
 const options = {
   hostname: 'generativelanguage.googleapis.com',
-  path: `/v1beta/models/gemini-3.8-flash:generateContent?key=${API_KEY}`,
+  path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Content-Length': data.length
+    'Content-Length': Buffer.byteLength(data)
   }
 };
 
@@ -84,7 +84,7 @@ const req = https.request(options, (res) => {
           rawText = rawText.substring(start, end + 1);
         }
 
-        JSON.parse(rawText); // Validar que sea un JSON correcto
+        JSON.parse(rawText);
         fs.writeFileSync('data.json', rawText);
         console.log("¡Pronósticos automáticos generados con éxito!");
       } else {
