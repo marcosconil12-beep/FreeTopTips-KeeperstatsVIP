@@ -1,14 +1,14 @@
+const https = require('https');
 const fs = require('fs');
 
 const API_KEY = process.env.GEMINI_KEY;
 
 if (!API_KEY) {
-  console.error("No se encontró la API Key en el entorno.");
+  console.error("No se encontró la API Key en los secretos.");
   process.exit(1);
 }
 
-async function run() {
-  const prompt = `Actúa como un motor analítico deportivo inteligente autónomo tipo Scores24.
+const prompt = `Actúa como un motor analítico deportivo inteligente autónomo tipo Scores24.
 Busca y selecciona partidos destacados reales que se jueguen HOY o en las próximas 24 horas en ligas principales (LaLiga, Premier, Champions, Serie A, Libertadores, etc.).
 Genera una respuesta JSON estricta dividida en dos categorías: "free" (3 partidos) y "vip" (3 partidos más exclusivos).
 
@@ -49,39 +49,59 @@ Usa estrictamente esta estructura JSON pura:
 }
 Responde ÚNICAMENTE con el objeto JSON sin bloques de código markdown ni texto adicional.`;
 
-  try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        tools: [{ googleSearch: {} }]
-      })
-    });
+const data = JSON.stringify({
+  contents: [{ parts: [{ text: prompt }] }],
+  tools: [{ googleSearch: {} }]
+});
 
-    const data = await response.json();
-    if (data.candidates && data.candidates[0].content.parts[0].text) {
-      let rawText = data.candidates[0].content.parts[0].text.trim();
-      rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+const options = {
+  hostname: 'generativelanguage.googleapis.com',
+  path: `/v1beta/models/gemini-3.8-flash:generateContent?key=${API_KEY}`,
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Content-Length': data.length
+  }
+};
 
-      const start = rawText.indexOf('{');
-      const end = rawText.lastIndexOf('}');
-      if (start !== -1 && end !== -1) {
-        rawText = rawText.substring(start, end + 1);
+const req = https.request(options, (res) => {
+  let responseBody = '';
+
+  res.on('data', (chunk) => {
+    responseBody += chunk;
+  });
+
+  res.on('end', () => {
+    try {
+      const jsonResponse = JSON.parse(responseBody);
+      if (jsonResponse.candidates && jsonResponse.candidates[0].content.parts[0].text) {
+        let rawText = jsonResponse.candidates[0].content.parts[0].text.trim();
+        rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        const start = rawText.indexOf('{');
+        const end = rawText.lastIndexOf('}');
+        if (start !== -1 && end !== -1) {
+          rawText = rawText.substring(start, end + 1);
+        }
+
+        JSON.parse(rawText); // Validar que sea un JSON correcto
+        fs.writeFileSync('data.json', rawText);
+        console.log("¡Pronósticos automáticos generados con éxito!");
+      } else {
+        console.error("Estructura de respuesta inesperada:", responseBody);
+        process.exit(1);
       }
-
-      // Validar JSON y guardarlo en data.json
-      JSON.parse(rawText);
-      fs.writeFileSync('data.json', rawText);
-      console.log("¡Pronósticos automáticos actualizados correctamente en data.json!");
-    } else {
-      console.error("Error en la respuesta de la IA:", JSON.stringify(data));
+    } catch (e) {
+      console.error("Error al procesar el JSON:", e, responseBody);
       process.exit(1);
     }
-  } catch (err) {
-    console.error("Error de ejecución:", err);
-    process.exit(1);
-  }
-}
+  });
+});
 
-run();
+req.on('error', (error) => {
+  console.error("Error en la petición HTTPS:", error);
+  process.exit(1);
+});
+
+req.write(data);
+req.end();
