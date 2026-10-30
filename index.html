@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Keeperstats VIP - Pronósticos Deportivos Profesionales</title>
+  <title>Keeperstats VIP - Pronósticos Deportivos</title>
   <style>
     :root {
       --bg-color: #0b0f19;
       --card-bg: #131c2e;
       --text-color: #f1f5f9;
       --accent-color: #22c55e;
-      --accent-hover: #16a34a;
+      --vip-color: #eab308;
       --border-color: #1e293b;
     }
     body {
@@ -26,48 +26,29 @@
       padding: 20px;
       text-align: center;
     }
-    h1 {
-      color: var(--accent-color);
-      margin: 0;
-      font-size: 1.8em;
-    }
-    .subtitle {
-      color: #94a3b8;
-      font-size: 0.9em;
-      margin-top: 5px;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 20px auto;
-      padding: 0 15px;
-    }
-    .filters {
-      background: var(--card-bg);
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+    h1 { color: var(--accent-color); margin: 0; font-size: 1.8em; }
+    .subtitle { color: #94a3b8; font-size: 0.9em; margin-top: 5px; }
+    .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+    
+    .tabs {
       display: flex;
       gap: 10px;
-      flex-wrap: wrap;
+      margin-bottom: 20px;
     }
-    select, button {
-      padding: 10px;
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
       border-radius: 6px;
-      border: 1px solid var(--border-color);
-      background: #0b0f19;
-      color: #fff;
-      font-size: 1em;
-    }
-    select { flex: 1; min-width: 200px; }
-    button {
-      background-color: var(--accent-color);
-      color: #fff;
       font-weight: bold;
       cursor: pointer;
-      border: none;
+      background: var(--card-bg);
+      color: #94a3b8;
+      font-size: 1.1em;
     }
-    button:hover { background-color: var(--accent-hover); }
-    
+    .tab-btn.active-free { background: var(--accent-color); color: #fff; }
+    .tab-btn.active-vip { background: var(--vip-color); color: #000; }
+
     .pick-card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -75,74 +56,29 @@
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
     }
-    .match-title {
-      font-size: 1.3em;
-      color: #38bdf8;
-      margin-top: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .league-badge {
-      background: #1e293b;
-      font-size: 0.75em;
-      padding: 4px 8px;
-      border-radius: 4px;
-      color: #cbd5e1;
-    }
-    .grid-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      background: #0b0f19;
-      padding: 12px;
-      border-radius: 6px;
-      margin: 15px 0;
-    }
-    .stat-item {
-      font-size: 0.9em;
-    }
-    .stat-item span {
-      color: #94a3b8;
-      display: block;
-      font-size: 0.8em;
-    }
-    .analysis-box {
-      font-size: 0.95em;
-      line-height: 1.5;
-      color: #cbd5e1;
-      margin-bottom: 15px;
-    }
-    .footer-admin {
-      text-align: right;
-      margin-top: 30px;
-      font-size: 0.85em;
-    }
+    .pick-card.vip { border-left-color: var(--vip-color); }
+    .match-title { font-size: 1.3em; color: #38bdf8; margin-top: 0; display: flex; justify-content: space-between; }
+    .league-badge { background: #1e293b; font-size: 0.75em; padding: 4px 8px; border-radius: 4px; color: #cbd5e1; }
+    .analysis-box { font-size: 0.95em; line-height: 1.5; color: #cbd5e1; margin: 15px 0; }
+    .footer-admin { text-align: right; margin-top: 30px; font-size: 0.85em; }
     .footer-admin a { color: #64748b; text-decoration: none; }
-    .footer-admin a:hover { color: #fff; }
   </style>
 </head>
 <body>
 
 <header>
   <h1>Keeperstats VIP ⚽</h1>
-  <div class="subtitle">Pronósticos Deportivos con Análisis de IA y Estadísticas Avanzadas</div>
+  <div class="subtitle">Análisis Estadísticos y Apuestas Inteligentes</div>
 </header>
 
 <div class="container">
-  <div class="filters">
-    <select id="leagueFilter" onchange="filtrarPicks()">
-      <option value="todos">🌐 Todas las Ligas y Competiciones</option>
-      <!-- Se cargan dinámicamente -->
-    </select>
-    <button onclick="cargarPicksPublicos()">🔄 Actualizar Pronósticos</button>
+  <div class="tabs">
+    <button id="btnFree" class="tab-btn active-free" onclick="cambiarSeccion('free')">🎁 Picks Gratuitos</button>
+    <button id="btnVip" class="tab-btn" onclick="cambiarSeccion('vip')">👑 Picks Privados (VIP)</button>
   </div>
 
-  <div id="picksContainer">
-    <p style="text-align: center; color: #64748b;">Cargando pronósticos profesionales...</p>
-  </div>
+  <div id="picksContainer"></div>
 
   <div class="footer-admin">
     <a href="admin.html">🔐 Acceso de Administrador</a>
@@ -150,106 +86,60 @@
 </div>
 
 <script>
-// Lista oficial de competiciones soportadas
-const ligasSoportadas = [
-  "LaLiga España", "LaLiga Hypermotion", "Primera RFEF", "Copa de España",
-  "Premier League", "Championship", "League One", "FA Cup", "Copa Carabao",
-  "Serie A Italia", "Serie B Italia", "Bundesliga Alemania", "Bundesliga 2 Alemania",
-  "Ligue 1 Francia", "Ligue 2 Francia", "Primeira Liga Portugal", "Segunda Liga Portugal",
-  "Brasileirão Serie A", "Brasileirão Serie B", "J-League Japón", "J2-League Japón", "A-League Australia",
-  "Champions League", "Europa League", "Conference League", "Champions Asiática",
-  "Copa Libertadores", "Copa Sudamericana", "Copa Italia", "Copa Alemania", "Copa Francia", "Copa Portugal"
-];
+let seccionActual = 'free';
 
-// Poblar selector de ligas
 window.onload = function() {
-  const select = document.getElementById('leagueFilter');
-  ligasSoportadas.forEach(liga => {
-    let opt = document.createElement('option');
-    opt.value = liga;
-    opt.textContent = liga;
-    select.appendChild(opt);
-  });
-  cargarPicksPublicos();
+  cargarPicks();
 }
 
-function cargarPicksPublicos() {
-  const container = document.getElementById('picksContainer');
-  // Cargamos desde localStorage compartido o base de datos simulada en navegador
-  let picksGuardados = JSON.parse(localStorage.getItem('keeperstats_picks') || '[]');
+function cambiarSeccion(tipo) {
+  seccionActual = tipo;
+  document.getElementById('btnFree').className = tipo === 'free' ? 'tab-btn active-free' : 'tab-btn';
+  document.getElementById('btnVip', tipo === 'vip').className = tipo === 'vip' ? 'tab-btn active-vip' : 'tab-btn';
+  // Arreglar clases de botones
+  if(tipo === 'free') {
+    document.getElementById('btnFree').className = 'tab-btn active-free';
+    document.getElementById('btnVip').className = 'tab-btn';
+  } else {
+    document.getElementById('btnFree').className = 'tab-btn';
+    document.getElementById('btnVip').className = 'tab-btn active-vip';
+  }
+  cargarPicks();
+}
 
-  if (picksGuardados.length === 0) {
+function cargarPicks() {
+  const container = document.getElementById('picksContainer');
+  const storageKey = seccionActual === 'free' ? 'keeperstats_free' : 'keeperstats_vip';
+  let picks = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+  if (picks.length === 0) {
     container.innerHTML = `<div style="text-align:center; padding: 40px; color: #64748b;">
-      <h3>No hay pronósticos activos en este momento</h3>
-      <p>El administrador debe generar los picks desde el panel privado.</p>
+      <h3>No hay pronósticos ${seccionActual === 'free' ? 'gratuitos' : 'VIP privados'} publicados</h3>
+      <p>Entra en el panel de administración para generarlos.</p>
     </div>`;
     return;
   }
 
-  mostrarPicks(picksGuardados);
-}
-
-function filtrarPicks() {
-  const ligaSeleccionada = document.getElementById('leagueFilter').value;
-  let picksGuardados = JSON.parse(localStorage.getItem('keeperstats_picks') || '[]');
-  
-  if (ligaSeleccionada === 'todos') {
-    mostrarPicks(picksGuardados);
-  } else {
-    let filtrados = picksGuardados.filter(p => p.liga === ligaSeleccionada);
-    mostrarPicks(filtrados);
-  }
-}
-
-function mostrarPicks(lista) {
-  const container = document.getElementById('picksContainer');
   container.innerHTML = '';
-
-  if (lista.length === 0) {
-    container.innerHTML = `<p style="text-align:center; color: #64748b;">No hay pronósticos para esta competición.</p>`;
-    return;
-  }
-
-  lista.forEach(p => {
+  picks.forEach(p => {
     let card = document.createElement('div');
-    card.className = 'pick-card';
+    card.className = seccionActual === 'vip' ? 'pick-card vip' : 'pick-card';
     card.innerHTML = `
       <div class="match-title">
         <span>⚽ ${p.partido}</span>
         <span class="league-badge">${p.liga}</span>
       </div>
-      <p style="color: #94a3b8; font-size: 0.85em; margin: 5px 0;">📅 ${p.fecha}</p>
-      
-      <div class="analysis-box">
-        <strong>🧠 Análisis Exhaustivo & Estado de Forma:</strong><br>${p.analisis}
-      </div>
-
-      <div class="grid-stats">
-        <div class="stat-item"><span>CÓRNERS ESPERADOS</span> 🎯 ${p.corners}</div>
-        <div class="stat-item"><span>TARJETAS ESTIMADAS</span> 🟨 ${p.tarjetas}</div>
-        <div class="stat-item"><span>PARADAS PORTERO</span> 🧤 ${p.paradas}</div>
-        <div class="stat-item"><span>REMATES A PUERTA</span> 🥾 ${p.remates}</div>
-      </div>
-
-      <div style="background: #1e293b; padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <div>
-          <span style="font-size: 0.8em; color: #94a3b8; display:block;">PICK PRINCIPAL</span>
-          <strong style="color: #22c55e; font-size: 1.1em;">${p.pickRecomendado}</strong> (@${p.cuota})
-        </div>
-        <div>
-          <span style="font-size: 0.8em; color: #94a3b8; display:block;">RESULTADO / HÁNDICAP</span>
-          <span>${p.resultadoExacto} | ${p.handicap}</span>
-        </div>
-        <div>
-          <span style="font-size: 0.8em; color: #94a3b8; display:block;">CONFIANZA</span>
-          <span style="background: #0b0f19; padding: 4px 8px; border-radius: 4px;">Stake ${p.stake}</span>
-        </div>
+      <p style="color: #94a3b8; font-size: 0.85em;">📅 ${p.fecha}</p>
+      <div class="analysis-box"><strong>Análisis:</strong> ${p.analisis}</div>
+      <div style="background: #1e293b; padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div><span style="font-size:0.8em; color:#94a3b8; display:block;">PICK</span><strong style="color: #22c55e;">${p.pick}</strong> (@${p.cuota})</div>
+        <div><span style="font-size:0.8em; color:#94a3b8; display:block;">MERCADO EXTRA</span><span>${p.extra}</span></div>
+        <div><span style="font-size:0.8em; color:#94a3b8; display:block;">STAKE</span><span>${p.stake}</span></div>
       </div>
     `;
     container.appendChild(card);
   });
 }
 </script>
-
 </body>
 </html>
