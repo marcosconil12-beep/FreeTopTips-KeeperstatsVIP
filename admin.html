@@ -114,7 +114,6 @@
 </div>
 
 <script>
-// Cambia aquí tu contraseña de administrador secreta
 const CLAVE_SECRETA = "admin123"; 
 
 function verificarLogin() {
@@ -142,27 +141,26 @@ async function generarPronosticosIA() {
   msg.innerHTML = '';
 
   const prompt = `Actúa como un tipster profesional experto en estadística avanzada de fútbol.
-Busca los partidos más destacados de la competición "${liga}" para esta semana o próximos días.
-Para cada partido, haz un análisis exhaustivo cruzando noticias recientes, estado de forma y estadísticas detalladas.
-Devuelve un array JSON estricto con máximo 3 partidos que contenga exactamente esta estructura:
+Busca información real y partidos recientes o próximos de la competición "${liga}".
+Genera un array JSON estricto con máximo 3 partidos usando exactamente estas claves en cada objeto:
 [
   {
     "partido": "Equipo A vs Equipo B",
     "liga": "${liga}",
     "fecha": "Fecha y hora",
-    "analisis": "Resumen detallado de estado de forma, lesiones y contexto táctico...",
-    "corners": "Más de 9.5 córners (Media combinada de 11.2)",
-    "tarjetas": "Más de 4.5 tarjetas (Árbitro tarjetero y rivalidad alta)",
-    "paradas": "Portero Local: Más de 3.5 paradas",
-    "remates": "Delantero X: Más de 2.5 remates a puerta",
-    "pickRecomendado": "Victoria Equipo A o Ambos Marcan",
+    "analisis": "Resumen detallado de estado de forma y contexto...",
+    "corners": "Más de 9.5 córners",
+    "tarjetas": "Más de 4.5 tarjetas",
+    "paradas": "Más de 3.5 paradas",
+    "remates": "Más de 2.5 remates a puerta",
+    "pickRecomendado": "Victoria Equipo A",
     "cuota": "1.85",
     "resultadoExacto": "2-1",
     "handicap": "Equipo A (-0.75)",
     "stake": "4/5"
   }
 ]
-Devuelve ÚNICAMENTE el JSON plano, sin bloques de código markdown.`;
+Devuelve SOLAMENTE el texto JSON válido, sin explicaciones ni markdown.`;
 
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
@@ -179,24 +177,28 @@ Devuelve ÚNICAMENTE el JSON plano, sin bloques de código markdown.`;
 
     if (data.candidates && data.candidates[0].content.parts[0].text) {
       let text = data.candidates[0].content.parts[0].text.trim();
+      
+      // Limpieza avanzada de formato para extraer solo el JSON válido
       text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const firstBracket = text.indexOf('[');
+      const lastBracket = text.lastIndexOf(']');
+      if (firstBracket !== -1 && lastBracket !== -1) {
+        text = text.substring(firstBracket, lastBracket + 1);
+      }
 
       const nuevosPicks = JSON.parse(text);
 
-      // Guardar en localStorage para que la web pública los muestre al instante
       let picksActuales = JSON.parse(localStorage.getItem('keeperstats_picks') || '[]');
-      
-      // Añadimos los nuevos al principio
       let combinados = [...nuevosPicks, ...picksActuales];
       localStorage.setItem('keeperstats_picks', JSON.stringify(combinados));
 
-      msg.innerHTML = `<p class="success">¡Pronósticos de ${liga} generados y publicados con éxito en la web pública!</p>`;
+      msg.innerHTML = `<p class="success">¡Pronósticos de ${liga} generados y publicados con éxito!</p>`;
     } else {
-      msg.innerHTML = `<p style="color: #ef4444;">Error al procesar la respuesta de la IA.</p>`;
+      msg.innerHTML = `<p style="color: #ef4444;">Error: La IA no devolvió contenido válido.</p>`;
     }
   } catch (error) {
     loading.style.display = 'none';
-    msg.innerHTML = `<p style="color: #ef4444;">Error de red: ${error.message}</p>`;
+    msg.innerHTML = `<p style="color: #ef4444;">Error de análisis: ${error.message}</p>`;
   }
 }
 </script>
